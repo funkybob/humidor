@@ -11,7 +11,7 @@ var RecordProxy = {
         case '@children':
             return Array.apply(null, tgt.children).map(function (el) { return new Proxy(el, RecordProxy); });
         default:
-            return (key.charAt(0) === '@') ? tgt[key.slice(1)] : tgt.dataset[key];
+            return (key.charAt(0) === '@') ? tgt.getAttribute(key.slice(1)) : tgt.dataset[key];
         }
     },
     set: function (tgt, key, value, rcv) {
@@ -34,7 +34,7 @@ function DOMStore() {
     this.doc = new DocumentFragment();
     // A map of selector: [list of handlers]
     this.register = {};
-    this._mo = new MutationObserver(this.handleMutation);
+    this._mo = new MutationObserver(this.handleMutation.bind(this));
     this._mo.observe(this.doc, {
         childList: true,
         attributes: true,
@@ -42,15 +42,22 @@ function DOMStore() {
         subtree: true
         // attributeOldValue:
         // characterDataOldValue:
-       // attributeFilter: []
+        // attributeFilter: []
     });
 }
 
 DOMStore.prototype.handleMutation = function (mutations) {
     mutations.forEach(function (m) {
-        Object.keys(this.register).map(m.target.matches).forEach(function(k) {
-            this.register[k].forEach(function (h) { h(m, new Proxy(m.target, RecordProxy)); });
-        }, this);
+        if(m.target === this.doc) {
+            // 
+        } else {
+            Object.keys(this.register).forEach(function (selector) {
+                if(!m.target.matches(selector)) return;
+                this.register[selector].forEach(function (h) {
+                    h(m, new Proxy(m.target, RecordProxy));
+                });
+            }, this);
+        }
     }, this);
 };
 
@@ -70,15 +77,18 @@ DOMStore.prototype.unsubscribe = function (selector, handler) {
     }
 };
 
-DOMStore.prototype.add = function(_id, record, root) {
+DOMStore.prototype.add = function(_id, data, root) {
     if(root === undefined) { root = this.doc; }
     var rec = root.getElementById(_id);
-    if(rec === undefined) { rec = document.createElement('record'); }
-    Object.keys(record).forEach(function (k) {
+    if(rec === null) {
+        rec = document.createElement('record');
+        rec.setAttribute('id', _id);
+    }
+    Object.keys(data).forEach(function (k) {
         if(k.charAt(0) === '@') {
-            record.setAttribute(k.slice(1), record[k]);
+            rec.setAttribute(k.slice(1), data[k]);
         } else {
-            record.dataset[k] = record[k];
+            rec.dataset[k] = data[k];
         }
     });
     root.appendChild(rec);
@@ -86,7 +96,7 @@ DOMStore.prototype.add = function(_id, record, root) {
 
 DOMStore.prototype.get = function (_id) {
     var rec = this.doc.getElementById(_id);
-    if(rec === undefined) return;
+    if(rec === null) return;
     return new Proxy(rec, RecordProxy);
 };
 

@@ -14,3 +14,26 @@ QUnit.test("Subscribe", function(assert) {
     assert.ok(rec['@type'] == 'test', 'Type matches');
     rec.name = 'test';
 });
+
+QUnit.test('Iterate children', function(assert) {
+    var store = new DOMStore();
+
+    var par = store.add('_', {'@type': 'root'});
+    for(var i=0; i<10; i++) {
+        store.add(i.toString(), {'@type': 'test', val: i}, par);
+    }
+    assert.ok(par['@children'].length = 10, 'Child count');
+    var seq = par['@children'].map(function (el) { return el['val']; });
+    assert.deepEqual(seq, ['0','1','2','3','4','5','6','7','8','9'], 'Correct values');
+});
+
+
+QUnit.test('Query', function(assert) {
+    var store = new DOMStore();
+
+    for(var i=0; i<100; i++) {
+        store.add(i.toString(), {'@type': (i % 2) ? 'odd' : 'even', val: i});
+    }
+    var result = store.query('[type=odd]');
+    assert.equal(result.length, 50, 'Odd count');
+});

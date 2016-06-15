@@ -79,7 +79,10 @@ DOMStore.prototype.unsubscribe = function (selector, handler) {
 
 DOMStore.prototype.add = function(_id, data, root) {
     if(root === undefined) { root = this.doc; }
-    var rec = root.getElementById(_id);
+    else {
+        root = root['@el'] || root;
+    }
+    var rec = this.doc.getElementById(_id);
     if(rec === null) {
         rec = document.createElement('record');
         rec.setAttribute('id', _id);
@@ -92,6 +95,7 @@ DOMStore.prototype.add = function(_id, data, root) {
         }
     });
     root.appendChild(rec);
+    return new Proxy(rec, RecordProxy);
 };
 
 DOMStore.prototype.get = function (_id) {
@@ -101,5 +105,5 @@ DOMStore.prototype.get = function (_id) {
 };
 
 DOMStore.prototype.query = function (selector) {
-    return Array.apply(null, this.doc.querySelectAll(selector)).map(function (el) { return new Proxy(el, RecordProxy); });
+    return Array.apply(null, this.doc.querySelectorAll(selector)).map(function (el) { return new Proxy(el, RecordProxy); });
 };

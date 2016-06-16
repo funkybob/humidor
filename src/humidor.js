@@ -132,8 +132,7 @@ DOMStore.prototype.add = function(_id, data, root) {
  */
 DOMStore.prototype.get = function (_id) {
     var rec = this.doc.getElementById(_id);
-    if(rec === null) return;
-    return new Proxy(rec, RecordProxy);
+    if(rec !== null) return new Proxy(rec, RecordProxy);
 };
 
 /**

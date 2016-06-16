@@ -51,7 +51,7 @@ var RecordProxy = {
 function DOMStore() {
     this.doc = new DocumentFragment();
     // A map of selector: [list of handlers]
-    this.register = {};
+    this.register = {null: []};
     this._mo = new MutationObserver(this.handleMutation.bind(this));
     this._mo.observe(this.doc, {
         childList: true,
@@ -67,10 +67,12 @@ function DOMStore() {
 DOMStore.prototype.handleMutation = function (mutations) {
     mutations.forEach(function (m) {
         if(m.target === this.doc) {
-            // 
+            this.register[null].forEach(function (h) {
+                h(m, new Proxy(m.target, RecordProxy));
+            }, this);
         } else {
             Object.keys(this.register).forEach(function (selector) {
-                if(!m.target.matches(selector)) return;
+                if(selector === null || !m.target.matches(selector)) return;
                 this.register[selector].forEach(function (h) {
                     h(m, new Proxy(m.target, RecordProxy));
                 });

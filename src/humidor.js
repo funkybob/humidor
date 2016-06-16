@@ -1,5 +1,7 @@
 
-// Wraps a DOM node to make it behave more like an Object
+/**
+ * Wraps a DOM node to make it behave more like an Object
+ */
 var RecordProxy = {
     has: function (tgt, key) {
         return (key.charAt(0) === '@') ? tgt.hasAttribute(key.slice(1)) : key in tgt.dataset;
@@ -30,6 +32,9 @@ var RecordProxy = {
     }
 };
 
+/**
+ * @class
+ */
 function DOMStore() {
     this.doc = new DocumentFragment();
     // A map of selector: [list of handlers]
@@ -46,6 +51,10 @@ function DOMStore() {
     });
 }
 
+/**
+ * Internal callback for mutation
+ * @callback
+ */
 DOMStore.prototype.handleMutation = function (mutations) {
     mutations.forEach(function (m) {
         if(m.target === this.doc) {
@@ -61,7 +70,11 @@ DOMStore.prototype.handleMutation = function (mutations) {
     }, this);
 };
 
-// Allows monitoring of changes on records matching specific selectors.
+/**
+ * Subscribe to events on records matching the given selector
+ * @param {string} selector
+ * @param {function} handler
+ */
 DOMStore.prototype.subscribe = function (selector, handler) {
     if (!(selector in this.register)) {
         this.register[selector] = [];
@@ -69,6 +82,11 @@ DOMStore.prototype.subscribe = function (selector, handler) {
     this.register[selector].push(handler);
 };
 
+/**
+ * Unsubscribe
+ * @param {string} selector
+ * @param {function} handler
+ */
 DOMStore.prototype.unsubscribe = function (selector, handler) {
     if (!(selector in this.register)) return;
     var idx = this.register[selector].indexOf(handler);
@@ -77,8 +95,17 @@ DOMStore.prototype.unsubscribe = function (selector, handler) {
     }
 };
 
+/**
+ * Add/update a record
+ * @param {string} _id - Unique identifier for this record
+ * @param {Object} data
+ * @param {element} [root=this.doc] - The element to add this record to
+ * @returns {record}
+ */
 DOMStore.prototype.add = function(_id, data, root) {
-    if(root === undefined) { root = this.doc; }
+    if(root === undefined) {
+        root = this.doc;
+    }
     else {
         root = root['@el'] || root;
     }
@@ -98,12 +125,22 @@ DOMStore.prototype.add = function(_id, data, root) {
     return new Proxy(rec, RecordProxy);
 };
 
+/**
+ * Retrieve a record by ID
+ * @param {string} _id
+ * @returns {record|undefined}
+ */
 DOMStore.prototype.get = function (_id) {
     var rec = this.doc.getElementById(_id);
     if(rec === null) return;
     return new Proxy(rec, RecordProxy);
 };
 
+/**
+ * Select records matching a selector
+ * @param {string} selector
+ * @returns {Array}
+ */
 DOMStore.prototype.query = function (selector) {
     return Array.apply(null, this.doc.querySelectorAll(selector)).map(function (el) { return new Proxy(el, RecordProxy); });
 };

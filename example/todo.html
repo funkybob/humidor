@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Todo </title>
+        <script src="humidor.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.0.3/doT.min.js"></script>
+        <script type="text/template" id="tmpl-main">
+{{~it.rows :value}}
+<div>
+    <label><input type="checkbox" name="{{=value['@id']}}" {{=value['state'] == 'true' && 'checked'}}> {{=value.message}}</label>
+</div>
+{{~}}
+        </script>
+        <script>
+document.addEventListener('DOMContentLoaded', function () {
+    var store = new DOMStore(),
+        tmpMain = doT.template(document.getElementById('tmpl-main').innerHTML),
+        input = document.querySelector('input[name=message]'),
+        main = document.querySelector('main');
+
+    function render () {
+        main.innerHTML = tmpMain({rows: store.query('record')});
+    }
+
+    main.addEventListener('change', function (ev) {
+        store.get(ev.target.name)['state'] = ev.target.checked;
+    });
+
+    document.querySelector('button#add').addEventListener('click', function () {
+        var _id = new Date().valueOf().toString();
+        store.add(_id, {message: input.value, state: false});
+        input.value = '';
+    });
+
+    store.subscribe(null, render);
+
+    input.focus();
+    render();
+});
+        </script>
+    </head>
+    <body>
+        <header>
+            <input type="text" name="message"><button type="button" id="add">Add</button>
+        </header>
+        <main></main>
+        <footer>
+        </footer>
+    </body>

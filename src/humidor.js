@@ -4,7 +4,14 @@
  */
 var RecordProxy = {
     has: function (tgt, key) {
-        return (key.charAt(0) === '@') ? tgt.hasAttribute(key.slice(1)) : key in tgt.dataset;
+        switch(key) {
+        case '@el':
+            return true;
+        case '@children':
+            return tgt.children.length > 0;
+        default:
+            return (key.charAt(0) === '@') ? tgt.hasAttribute(key.slice(1)) : key in tgt.dataset;
+        }
     },
     get: function (tgt, key, rcv) {
         switch(key) {
@@ -17,10 +24,16 @@ var RecordProxy = {
         }
     },
     set: function (tgt, key, value, rcv) {
-        if(key.charAt(0) === '@') {
-            tgt.setAttribute(key.slice(1), value);
-        } else {
-            tgt.dataset[key] = value;
+        switch(key) {
+        case '@el':
+        case '@children':
+            throw 'ReadOnly';
+        default:
+            if(key.charAt(0) === '@') {
+                tgt.setAttribute(key.slice(1), value);
+            } else {
+                tgt.dataset[key] = value;
+            }
         }
     },
     deleteProperty: function (tgt, key) {
@@ -43,11 +56,7 @@ function DOMStore() {
     this._mo.observe(this.doc, {
         childList: true,
         attributes: true,
-        // characterData:
         subtree: true
-        // attributeOldValue:
-        // characterDataOldValue:
-        // attributeFilter: []
     });
 }
 

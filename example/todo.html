@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input = document.querySelector('input.new-todo'),
         main = document.querySelector('ul.todo-list');
 
-    var filter = store.add('filter', {'@type': 'filter', value: ''});
+    var filter = store.add('filter', {'@type': 'filter', value: window.location.hash.slice(2)});
 
     function render () {
         var sel = '[type=todo]';
@@ -46,8 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('hashchange', function () {
-        var h = window.location.hash.slice(2);
-        filter.value = h;
+        var hash = window.location.hash;
+        Array.apply(null, document.querySelectorAll('.filters a')).forEach(function (el) {
+            el.classList.remove('selected');
+        });
+        document.querySelector('.filters a[href="' + hash + '"]').classList.add('selected');
+        filter.value = hash.slice(2);
     });
 
     main.addEventListener('change', function (ev) {

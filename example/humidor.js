@@ -147,6 +147,15 @@ DOMStore.prototype.get = function (_id) {
 };
 
 /**
+ * Remove a record by ID
+ * @param {string} _id
+ */
+DOMStore.prototype.remove = function (_id) {
+    var rec = this.doc.getElementById(_id);
+    rec.parentNode.removeChild(rec);
+};
+
+/**
  * Select records matching a selector
  * @param {string} selector
  * @returns {Array}

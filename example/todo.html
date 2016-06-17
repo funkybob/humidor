@@ -5,53 +5,81 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>HumiDOR • TodoMVC</title>
 		<link rel="stylesheet" href="todo.css">
-		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
 
         <script src="humidor.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.0.3/doT.min.js"></script>
         <script type="text/template" id="tmpl-main">
 {{~it.rows :value}}
-<li>
+<li {{?value['completed'] == 'true'}}class="completed"{{?}}>
     <div class="view">
-        <input class="toggle" type="checkbox" name="{{=value['@id']}}" {{=value['state'] == 'true' && 'checked'}}>
+        <input class="toggle" type="checkbox" name="{{=value['@id']}}" {{=value['completed'] == 'true' && 'checked'}}>
         <label>{{=value.message}}</label>
         <button class="destroy"></button>
     </div>
-    <input class="edit" value="Rule the web">
+    <input class="edit" value="{{=value.message}}">
 </li>
 {{~}}
         </script>
         <script>
+var store;
 document.addEventListener('DOMContentLoaded', function () {
-    var store = new DOMStore(),
-        tmpMain = doT.template(document.getElementById('tmpl-main').innerHTML),
+    store = new DOMStore();
+    var tmpMain = doT.template(document.getElementById('tmpl-main').innerHTML),
         input = document.querySelector('input.new-todo'),
         main = document.querySelector('ul.todo-list');
 
+    var filter = store.add('filter', {'@type': 'filter', value: ''});
+
     function render () {
-        main.innerHTML = tmpMain({rows: store.query('record')});
+        var sel = '[type=todo]';
+        switch(filter.value) {
+        case 'active':
+            sel += '[data-completed=false]';
+            break;
+        case 'completed':
+            sel += '[data-completed=true]';
+            break;
+        }
+        var rows = store.query(sel);
+        main.innerHTML = tmpMain({rows: rows});
+        document.querySelector('.todo-count strong').innerHTML = rows.length;
     }
 
+    window.addEventListener('hashchange', function () {
+        var h = window.location.hash.slice(2);
+        filter.value = h;
+    });
+
     main.addEventListener('change', function (ev) {
-        store.get(ev.target.name)['state'] = ev.target.checked;
+        store.get(ev.target.name)['completed'] = ev.target.checked;
     });
     main.addEventListener('click', function (ev) {
         if(!ev.target.matches('button.destroy')) return;
         var _id = ev.target.parentNode.querySelector('input').name;
-        store.get(_id)['state'] = false;
+        store.remove(_id);
+    });
+    main.addEventListener('dblclick', function (ev) {
+        if(!ev.target.matches('label')) return;
+        ev.target.parentNode.parentNode.classList.add('editing');
+        ev.target.parentNode.parentNode.querySelector('input.edit').focus();
+    });
+    main.addEventListener('keyup', function (ev) {
+        if(ev.code !== 'Enter') return;
+        var val = ev.target.value;
+        ev.target.parentNode.classList.remove('editing');
     });
 
     input.addEventListener('keyup', function (ev) {
         if(ev.code !== 'Enter') return;
         var _id = new Date().valueOf().toString();
-        store.add(_id, {message: input.value, state: false});
+        store.add(_id, {"@type": "todo", message: input.value, completed: false});
         input.value = '';
     });
 
     store.subscribe(null, render);
 
-    input.focus();
     render();
+    input.focus();
 });
         </script>
 	</head>

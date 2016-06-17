@@ -66,11 +66,10 @@ function DOMStore() {
  */
 DOMStore.prototype.handleMutation = function (mutations) {
     mutations.forEach(function (m) {
-        if(m.target === this.doc) {
-            this.register[null].forEach(function (h) {
-                h(m, new Proxy(m.target, RecordProxy));
-            }, this);
-        } else {
+        this.register[null].forEach(function (h) {
+            h(m, new Proxy(m.target, RecordProxy));
+        }, this);
+        if(m.target !== this.doc) {
             Object.keys(this.register).forEach(function (selector) {
                 if(selector === null || !m.target.matches(selector)) return;
                 this.register[selector].forEach(function (h) {

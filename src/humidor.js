@@ -19,6 +19,8 @@ var RecordProxy = {
             return tgt;
         case '@children':
             return Array.apply(null, tgt.children).map(function (el) { return new Proxy(el, RecordProxy); });
+        case '..':
+            return new RecordProxy(tgt.parentNode, RecordProxy);
         default:
             return (key.charAt(0) === '@') ? tgt.getAttribute(key.slice(1)) : tgt.dataset[key];
         }

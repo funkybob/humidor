@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', function () {
     store = new DOMStore();
     var tmpl = document.querySelector('template#todo-row').innerHTML;
         input = document.querySelector('input.new-todo'),
-        main = document.querySelector('ul.todo-list');
+        main = document.querySelector('ul.todo-list'),
+        rowcount = document.querySelector('.todo-count strong');
 
     function render () {
         var sel = '[type=todo]';
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         var rows = store.query(sel);
         main.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
-        document.querySelector('.todo-count strong').innerHTML = rows.length;
+        rowcount.innerHTML = store.query('[type=todo][data-completed=false]').length;
     }
 
     // Make all entries state track 'toggle all' flag
@@ -36,7 +37,12 @@ document.addEventListener('DOMContentLoaded', function () {
             rec.completed = ev.target.checked;
         });
     });
-
+    //
+    document.querySelector('.clear-completed').addEventListener('click', function (ev) {
+        store.query('[type=todo][data-completed=true]').forEach(function (rec) {
+            rec['@el'].parentNode.removeChild(rec['@el'])
+        });
+    });
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;

@@ -1,5 +1,3 @@
-var store;
-
 String.prototype.format = function (data) {
     return this.replace(/{{([\w@]+)}}/g, function(match, key) {
         return data[key];
@@ -10,25 +8,19 @@ String.prototype.format = function (data) {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    store = new DOMStore();
-    var tmpl = document.querySelector('template#todo-row').innerHTML;
+    var store = new DOMStore(),
+        tmpl = document.querySelector('template#todo-row').innerHTML;
         input = document.querySelector('input.new-todo'),
         main = document.querySelector('ul.todo-list'),
+        footer = document.querySelector('.footer'),
         rowcount = document.querySelector('.todo-count strong');
 
+    FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'}
     function render () {
-        var sel = '[type=todo]';
-        switch(filter.value) {
-        case 'active':
-            sel += '[data-completed=false]';
-            break;
-        case 'completed':
-            sel += '[data-completed=true]';
-            break;
-        }
-        var rows = store.query(sel);
+        var rows = store.query('[type=todo]' + FILTER[filter.value]);
         main.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
         rowcount.innerHTML = store.query('[type=todo][data-completed=false]').length;
+        footer.classList[(rows.length == 0) ? 'add' : 'remove']('hidden');
     }
 
     // Make all entries state track 'toggle all' flag
@@ -37,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
             rec.completed = ev.target.checked;
         });
     });
-    //
+    // Remove all records marked completed
     document.querySelector('.clear-completed').addEventListener('click', function (ev) {
         store.query('[type=todo][data-completed=true]').forEach(function (rec) {
             rec['@el'].parentNode.removeChild(rec['@el'])
@@ -56,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // catch change of complete status
     main.addEventListener('change', function (ev) {
         if(!ev.target.matches('input[type=checkbox]')) return;
-        store.get(ev.target.name)['completed'] = ev.target.checked;
+        store.get(ev.target.name).completed = ev.target.checked;
     });
     // catch Click on "done" button
     main.addEventListener('click', function (ev) {

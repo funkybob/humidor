@@ -72,3 +72,7 @@ __.select = function (sel, root) {
     var els = root.querySelectorAll(sel);
     return new Proxy(els, ElementListProxy);
 };
+
+__.onstart = function(handler) {
+    document.addEventListener('DOMContentLoaded', handler);
+};

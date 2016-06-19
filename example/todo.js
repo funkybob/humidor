@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // catch Double Click on todo labels
     main.addEventListener('dblclick', function (ev) {
         if(!ev.target.matches('label')) return;
+        Array.apply(null, main.querySelectorAll('li.editing')).forEach(function (el) {
+            el.classList.remove('editing');
+        });
         ev.target.parentNode.parentNode.classList.add('editing');
         ev.target.parentNode.parentNode.querySelector('input.edit').focus();
     });

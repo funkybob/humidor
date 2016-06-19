@@ -32,6 +32,24 @@ var ElementListProxy = {
         switch(key) {
         case 'forEach':
             return Array.apply(null, tgt).forEach;
+        case 'addClass':
+            return function (cls) {
+                Array.apply(null, tgt).forEach(function (el) {
+                    el.classList.add(cls);
+                });
+            }
+        case 'removeClass':
+            return function (cls) {
+                Array.apply(null, tgt).forEach(function (el) {
+                    el.classList.remove(cls);
+                });
+            }
+        case 'toggleClass':
+            return function (cls) {
+                Array.apply(null, tgt).forEach(function (el) {
+                    el.classList.toggle(cls);
+                });
+            }
         default:
             tgt[key] = value;
         }

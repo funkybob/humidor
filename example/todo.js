@@ -7,7 +7,7 @@
 String.prototype.format = function (data) {
     return this.replace(/{{([\w@]+)}}/g, function(match, key) {
         return data[key];
-    }).replace(/{\?(\w+)\?}(.*){\?}/g, function(match, key, value) {
+    }).replace(/{\?(\w+)\?}(.*?){\?}/g, function(match, key, value) {
         return (data[key] == 'true') ? value : '';
     })
 };
@@ -53,32 +53,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // catch change of complete status
     main.delegate('change', 'input[type=checkbox]', function (ev) {
-        store.get(ev.target.name).completed = ev.target.checked;
+        var _id = __(ev.target).parent('li').dataset.id;
+        store.get(_id).completed = ev.target.checked;
     });
     // catch Click on "done" button
     main.delegate('click', 'button.destroy', function (ev) {
-        var _id = __.get('input[type=checkbox]', ev.target.parentNode).name;
+        var _id = __(target.ev).parent('li').dataset.id;
         store.remove(_id);
     });
     // catch Double Click on todo labels
     main.delegate('dblclick', 'label', function (ev) {
-        __.select('li.editing').forEach(function (el) {
-            el.classList.remove('editing');
+        store.query({'@type': 'todo'}).forEach(function (rec) {
+            rec.editing = 'false';
         });
-        var le = __(ev.target).parent('li');
-        le.classList.add('editing');
-        __.get('input.edit', le).focus();
+        var _id = __(ev.target).parent('li').dataset.id;
+        store.get(_id).editing = 'true';
     });
     // catch Enter in edit inputs
-    main.on('keyup', function (ev) {
+    main.delegate('keyup', '.edit', function (ev) {
         if(ev.code !== 'Enter') return;
-        var val = ev.target.value;
-        var _id = __.get('input[type=checkbox]', ev.target.parentNode).name;
-        store.get(_id).message = val;
-        __(ev.target).parent('li').classList.remove('editing');
+        var _id = __(ev.target).parent('li').dataset.id;
+        var rec = store.get(_id);
+        rec.message = ev.target.value;
+        rec.editing = 'false';
     });
     // catch Enter in new todo input
-    input.on('keyup', function (ev) {
+    input.delegate('keyup', '.new-todo', function (ev) {
         if(ev.code !== 'Enter') return;
         var _id = new Date().valueOf().toString();
         store.add(_id, {"@type": "todo", message: input.value, completed: false});

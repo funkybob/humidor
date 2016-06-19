@@ -9,9 +9,9 @@
         <script src="dunder.js"></script>
 		<script src="todo.js"></script>
         <template id="todo-row">
-            <li class="{?completed?}completed{?}">
+            <li class="{?completed?}completed{?} {?editing?}editing{?}" data-id="{{@id}}">
                 <div class="view">
-                    <input class="toggle" type="checkbox" name="{{@id}}" {?completed?}checked{?}>
+                    <input class="toggle" type="checkbox" {?completed?}checked{?}>
                     <label>{{message}}</label>
                     <button class="destroy"></button>
                 </div>

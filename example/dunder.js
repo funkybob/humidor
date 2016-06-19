@@ -50,6 +50,12 @@ var ElementListProxy = {
                     el.classList.toggle(cls);
                 });
             }
+        case 'radioClass':
+            return function (cls, sel) {
+                Array.apply(null, tgt).forEach(function (el) {
+                    el.classList[el.matches(sel) ? 'add' : 'remove'](cls);
+                })
+            }
         default:
             tgt[key] = value;
         }

@@ -152,25 +152,24 @@ DOMStore.prototype.get = function (_id) {
  * @param {string} _id
  */
 DOMStore.prototype.remove = function (_id) {
-    var rec = this.doc.getElementById(_id);
-    rec.parentNode.removeChild(rec);
+    var el = (typeof _id == 'string') ? this.doc.getElementById(_id) : _id['@el'];
+    el.parentNode.removeChild(el);
 };
 
 /**
  * Select records matching a selector
- * @param {string} selector
+ * @param {string|Object} selector
  * @returns {Array}
  */
 DOMStore.prototype.query = function (selector) {
     if(typeof selector === 'object') {
         selector = Object.keys(selector).map(function (key) {
             var value = selector[key];
-            if(key.charAt(0) == '@') {
-                return '[' + key.slice(1) + '=' + value + ']';
-            } else {
-                return '[data-' + key + '=' + value +']';
-            }
+            key = (key.charAt('0') == '@') ? key.slice(1) : 'data-' + key;
+            return '[' + key + '=' + value + ']';
         }).join('');
     }
-    return Array.apply(null, this.doc.querySelectorAll(selector)).map(function (el) { return new Proxy(el, RecordProxy); });
+    return Array.apply(null, this.doc.querySelectorAll(selector)).map(function (el) {
+        return new Proxy(el, RecordProxy);
+    });
 };

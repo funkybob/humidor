@@ -1,19 +1,24 @@
+/**
+ * A minimal template rendering tool
+ *
+ * {{name}} renders data[name]
+ * {?name?}...{?} renders ... IFF data[name] == 'true'
+ */
 String.prototype.format = function (data) {
     return this.replace(/{{([\w@]+)}}/g, function(match, key) {
         return data[key];
     }).replace(/{\?(\w+)\?}(.*){\?}/g, function(match, key, value) {
         return (data[key] == 'true') ? value : '';
-
     })
 };
 
 document.addEventListener('DOMContentLoaded', function () {
     var store = new DOMStore(),
-        tmpl = document.querySelector('template#todo-row').innerHTML;
-        input = document.querySelector('input.new-todo'),
-        main = document.querySelector('ul.todo-list'),
-        footer = document.querySelector('.footer'),
-        rowcount = document.querySelector('.todo-count strong');
+        tmpl = __.get('template#todo-row').innerHTML;
+        input = __.get('input.new-todo'),
+        main = __.get('ul.todo-list'),
+        footer = __.get('.footer'),
+        rowcount = __.get('.todo-count strong');
 
     FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'}
     function render () {
@@ -24,57 +29,56 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Make all entries state track 'toggle all' flag
-    document.querySelector('.toggle-all').addEventListener('change', function (ev) {
+    __.get('.toggle-all').on('change', function (ev) {
         store.query({'@type': 'todo'}).forEach(function (rec) {
             rec.completed = ev.target.checked;
         });
     });
     // Remove all records marked completed
-    document.querySelector('.clear-completed').addEventListener('click', function (ev) {
+    __.get('.clear-completed').on('click', function (ev) {
         store.query({'@type': 'todo', 'completed': 'true'}).forEach(function (rec) {
+            // XXX This is clumsy!
             rec['@el'].parentNode.removeChild(rec['@el'])
         });
     });
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;
-        Array.apply(null, document.querySelectorAll('.filters a')).forEach(function (el) {
+        __.select('.filters a').forEach(function (el) {
             el.classList.remove('selected');
-        });
-        document.querySelector('.filters a[href="' + hash + '"]').classList.add('selected');
+        })
+        __.get('.filters a[href="' + hash + '"]').classList.add('selected');
         filter.value = hash.slice(2);
     });
 
     // catch change of complete status
-    main.addEventListener('change', function (ev) {
-        if(!ev.target.matches('input[type=checkbox]')) return;
+    main.delegate('change', 'input[type=checkbox]', function (ev) {
         store.get(ev.target.name).completed = ev.target.checked;
     });
     // catch Click on "done" button
-    main.addEventListener('click', function (ev) {
-        if(!ev.target.matches('button.destroy')) return;
-        var _id = ev.target.parentNode.querySelector('input[type=checkbox]').name;
+    main.delegate('click', 'button.destroy', function (ev) {
+        var _id = __.get('input[type=checkbox]', ev.target.parentNode).name;
         store.remove(_id);
     });
     // catch Double Click on todo labels
-    main.addEventListener('dblclick', function (ev) {
-        if(!ev.target.matches('label')) return;
-        Array.apply(null, main.querySelectorAll('li.editing')).forEach(function (el) {
+    main.delegate('dblclick', 'label', function (ev) {
+        __.select('li.editing').forEach(function (el) {
             el.classList.remove('editing');
         });
-        ev.target.parentNode.parentNode.classList.add('editing');
-        ev.target.parentNode.parentNode.querySelector('input.edit').focus();
+        var le = __(ev.target).parent('li');
+        le.classList.add('editing');
+        __.get('input.edit', le).focus();
     });
     // catch Enter in edit inputs
-    main.addEventListener('keyup', function (ev) {
+    main.on('keyup', function (ev) {
         if(ev.code !== 'Enter') return;
         var val = ev.target.value;
-        var _id = ev.target.parentNode.querySelector('input[type=checkbox]').name;
+        var _id = __.get('input[type=checkbox]', ev.target.parentNode).name;
         store.get(_id).message = val;
-        ev.target.parentNode.classList.remove('editing');
+        __.get(ev.target).parent('li').classList.remove('editing');
     });
     // catch Enter in new todo input
-    input.addEventListener('keyup', function (ev) {
+    input.on('keyup', function (ev) {
         if(ev.code !== 'Enter') return;
         var _id = new Date().valueOf().toString();
         store.add(_id, {"@type": "todo", message: input.value, completed: false});

@@ -41,8 +41,7 @@ __.onstart(function () {
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;
-        __.select('.filters a').removeClass('selected');
-        __.get('.filters a[href="' + hash + '"]').classList.add('selected');
+        __.select('.filters a').radioClass('selected', '[href="' + hash + '"]')
         filter.value = hash.slice(2);
     });
 

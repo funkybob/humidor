@@ -19,19 +19,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function render () {
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
         main.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
-        rowcount.innerHTML = store.query('[type=todo][data-completed=false]').length;
+        rowcount.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length;
         footer.classList[(rows.length == 0) ? 'add' : 'remove']('hidden');
     }
 
     // Make all entries state track 'toggle all' flag
     document.querySelector('.toggle-all').addEventListener('change', function (ev) {
-        store.query('[type=todo]').forEach(function (rec) {
+        store.query({'@type': 'todo'}).forEach(function (rec) {
             rec.completed = ev.target.checked;
         });
     });
     // Remove all records marked completed
     document.querySelector('.clear-completed').addEventListener('click', function (ev) {
-        store.query('[type=todo][data-completed=true]').forEach(function (rec) {
+        store.query({'@type': 'todo', 'completed': 'true'}).forEach(function (rec) {
             rec['@el'].parentNode.removeChild(rec['@el'])
         });
     });

@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var val = ev.target.value;
         var _id = __.get('input[type=checkbox]', ev.target.parentNode).name;
         store.get(_id).message = val;
-        __.get(ev.target).parent('li').classList.remove('editing');
+        __(ev.target).parent('li').classList.remove('editing');
     });
     // catch Enter in new todo input
     input.on('keyup', function (ev) {

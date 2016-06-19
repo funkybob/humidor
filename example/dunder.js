@@ -31,7 +31,7 @@ var ElementListProxy = {
     'get': function (tgt, key, value, rcv) {
         switch(key) {
         case 'forEach':
-            return new Array.apply(null, tgt).forEach;
+            return Array.apply(null, tgt).forEach;
         default:
             tgt[key] = value;
         }
@@ -52,5 +52,5 @@ __.get = function (sel, root) {
 __.select = function (sel, root) {
     root = root || document;
     var els = root.querySelectorAll(sel);
-    return new Proxy(el, ElementListProxy);
+    return new Proxy(els, ElementListProxy);
 };

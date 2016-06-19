@@ -12,7 +12,7 @@ String.prototype.format = function (data) {
     })
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+__.onstart(function () {
     var store = new DOMStore(),
         tmpl = __.get('template#todo-row').innerHTML;
         input = __.get('input.new-todo'),
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
         main.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
         rowcount.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length;
-        footer.classList[(rows.length == 0) ? 'add' : 'remove']('hidden');
+        footer.classList[(store.query({'@type': 'todo'}).length == 0) ? 'add' : 'remove']('hidden');
     }
 
     // Make all entries state track 'toggle all' flag
@@ -36,17 +36,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     // Remove all records marked completed
     __.get('.clear-completed').on('click', function (ev) {
-        store.query({'@type': 'todo', 'completed': 'true'}).forEach(function (rec) {
-            // XXX This is clumsy!
-            rec['@el'].parentNode.removeChild(rec['@el'])
-        });
+        store.query({'@type': 'todo', 'completed': 'true'}).forEach(store.remove.bind(store));
     });
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;
-        __.select('.filters a').forEach(function (el) {
-            el.classList.remove('selected');
-        })
+        __.select('.filters a').removeClass('selected');
         __.get('.filters a[href="' + hash + '"]').classList.add('selected');
         filter.value = hash.slice(2);
     });
@@ -58,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     // catch Click on "done" button
     main.delegate('click', 'button.destroy', function (ev) {
-        var _id = __(target.ev).parent('li').dataset.id;
+        var _id = __(ev.target).parent('li').dataset.id;
         store.remove(_id);
     });
     // catch Double Click on todo labels

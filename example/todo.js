@@ -9,26 +9,26 @@ String.prototype.format = function (data) {
         return data[key];
     }).replace(/{\?(\w+)\?}(.*?){\?}/g, function(match, key, value) {
         return (data[key] == 'true') ? value : '';
-    })
+    });
 };
 
 __.onstart(function () {
     var store = new DOMStore(),
-        tmpl = __.get('template#todo-row').innerHTML;
+        tmpl = __.get('template#todo-row').innerHTML,
         input = __.get('input.new-todo'),
         todoList = __.get('ul.todo-list'),
         main = __.get('.main'),
         footer = __.get('.footer'),
         rowcount = __.get('.todo-count strong');
 
-    FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'}
+    var FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'};
     function render () {
         var total = store.query({'@type': 'todo'}).length;
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
         todoList.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
         rowcount.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length;
-        footer.classList[(total == 0) ? 'add' : 'remove']('hidden');
-        footer.classList[(total == 0) ? 'add' : 'remove']('hidden');
+        footer.classList[(total === 0) ? 'add' : 'remove']('hidden');
+        main.classList[(total === 0) ? 'add' : 'remove']('hidden');
     }
 
     // Make all entries state track 'toggle all' flag
@@ -45,7 +45,7 @@ __.onstart(function () {
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;
-        __.select('.filters a').radioClass('selected', '[href="' + hash + '"]')
+        __.select('.filters a').radioClass('selected', '[href="' + hash + '"]');
         filter.value = hash.slice(2);
     });
 

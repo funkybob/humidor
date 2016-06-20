@@ -25,7 +25,7 @@ var ElementProxy = {
         tgt[key] = value;
     }
 };
-// ElementProxy.prototype = Reflect.prototype;
+// ElementProxy.prototype = Object.create(Reflect.prototype);
 
 var ElementListProxy = {
     'get': function (tgt, key, value, rcv) {
@@ -34,25 +34,25 @@ var ElementListProxy = {
             return Array.apply(null, tgt).forEach;
         case 'addClass':
             return function (cls) {
-                Array.apply(null, tgt).forEach(function (el) {
+                Array.prototype.forEach.call(tgt, function (el) {
                     el.classList.add(cls);
                 });
             }
         case 'removeClass':
             return function (cls) {
-                Array.apply(null, tgt).forEach(function (el) {
+                Array.prototype.forEach.call(tgt, function (el) {
                     el.classList.remove(cls);
                 });
             }
         case 'toggleClass':
             return function (cls) {
-                Array.apply(null, tgt).forEach(function (el) {
+                Array.prototype.forEach.call(tgt, function (el) {
                     el.classList.toggle(cls);
                 });
             }
         case 'radioClass':
             return function (cls, sel) {
-                Array.apply(null, tgt).forEach(function (el) {
+                Array.prototype.forEach.call(tgt, function (el) {
                     el.classList[el.matches(sel) ? 'add' : 'remove'](cls);
                 })
             }
@@ -61,7 +61,7 @@ var ElementListProxy = {
         }
     }
 };
-// ElementListProxy.prototype = Reflect.prototype;
+// ElementListProxy.prototype = Object.create(Reflect.prototype);
 
 function __(el) {
     return new Proxy(el, ElementProxy);

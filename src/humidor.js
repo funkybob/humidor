@@ -18,7 +18,7 @@ var RecordProxy = {
         case '@el':
             return tgt;
         case '@children':
-            return Array.apply(null, tgt.children).map(function (el) { return new Proxy(el, RecordProxy); });
+            return Array.prototype.map.call(tgt.children, function (el) { return new Proxy(el, RecordProxy); });
         case '..':
             return new RecordProxy(tgt.parentNode, RecordProxy);
         default:
@@ -169,7 +169,7 @@ DOMStore.prototype.query = function (selector) {
             return '[' + key + '=' + value + ']';
         }).join('');
     }
-    return Array.apply(null, this.doc.querySelectorAll(selector)).map(function (el) {
+    return Array.prototype.map.call(this.doc.querySelectorAll(selector), function (el) {
         return new Proxy(el, RecordProxy);
     });
 };

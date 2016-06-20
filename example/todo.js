@@ -67,14 +67,21 @@ __.onstart(function () {
         var _id = __(ev.target).parent('li').dataset.id;
         store.get(_id).editing = 'true';
     });
-    // catch Enter in edit inputs
-    todoList.delegate('keyup', '.edit', function (ev) {
-        if(ev.code !== 'Enter') return;
+
+    function update_todo(ev) {
         var _id = __(ev.target).parent('li').dataset.id;
         var rec = store.get(_id);
         rec.message = ev.target.value;
         rec.editing = 'false';
+    }
+    // catch Enter in edit inputs
+    todoList.delegate('keyup', '.edit', function (ev) {
+        if(ev.code !== 'Enter') return;
+        update_todo(ev);
     });
+    // also update on blur
+    todoList.delegate('focusout', '.edit', update_todo);
+
     // catch Enter in new todo input
     input.delegate('keyup', '.new-todo', function (ev) {
         if(ev.code !== 'Enter') return;

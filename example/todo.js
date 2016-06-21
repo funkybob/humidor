@@ -1,80 +1,95 @@
+/**
+ * A minimal template rendering tool
+ *
+ * {{name}} renders data[name]
+ * {?name?}...{?} renders ... IFF data[name] == 'true'
+ */
 String.prototype.format = function (data) {
     return this.replace(/{{([\w@]+)}}/g, function(match, key) {
         return data[key];
-    }).replace(/{\?(\w+)\?}(.*){\?}/g, function(match, key, value) {
+    }).replace(/{\?(\w+)\?}(.*?){\?}/g, function(match, key, value) {
         return (data[key] == 'true') ? value : '';
-
-    })
+    });
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+__.onstart(function () {
     var store = new DOMStore(),
-        tmpl = document.querySelector('template#todo-row').innerHTML;
-        input = document.querySelector('input.new-todo'),
-        main = document.querySelector('ul.todo-list'),
-        footer = document.querySelector('.footer'),
-        rowcount = document.querySelector('.todo-count strong');
+        tmpl = __.get('template#todo-row').innerHTML,
+        input = __.get('input.new-todo'),
+        todoList = __.get('ul.todo-list'),
+        main = __.get('.main'),
+        footer = __.get('.footer'),
+        rowcount = __.get('.todo-count strong');
 
-    FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'}
+    var FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'};
     function render () {
+        var total = store.query({'@type': 'todo'}).length;
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
-        main.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
-        rowcount.innerHTML = store.query('[type=todo][data-completed=false]').length;
-        footer.classList[(rows.length == 0) ? 'add' : 'remove']('hidden');
+        todoList.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
+        rowcount.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length;
+        footer.classList[(total === 0) ? 'add' : 'remove']('hidden');
+        main.classList[(total === 0) ? 'add' : 'remove']('hidden');
     }
 
     // Make all entries state track 'toggle all' flag
-    document.querySelector('.toggle-all').addEventListener('change', function (ev) {
-        store.query('[type=todo]').forEach(function (rec) {
+    __.get('.toggle-all').on('change', function (ev) {
+        store.query({'@type': 'todo'}).forEach(function (rec) {
             rec.completed = ev.target.checked;
         });
     });
     // Remove all records marked completed
-    document.querySelector('.clear-completed').addEventListener('click', function (ev) {
-        store.query('[type=todo][data-completed=true]').forEach(function (rec) {
-            rec['@el'].parentNode.removeChild(rec['@el'])
-        });
+    __.get('.clear-completed').on('click', function (ev) {
+        store.query({'@type': 'todo', 'completed': 'true'}).forEach(store.remove.bind(store));
+        __.get('.toggle-all').checked = false;
     });
     // track routing - controls filtering
     window.addEventListener('hashchange', function () {
         var hash = window.location.hash;
-        Array.apply(null, document.querySelectorAll('.filters a')).forEach(function (el) {
-            el.classList.remove('selected');
-        });
-        document.querySelector('.filters a[href="' + hash + '"]').classList.add('selected');
+        __.select('.filters a').radioClass('selected', '[href="' + hash + '"]');
         filter.value = hash.slice(2);
     });
 
     // catch change of complete status
-    main.addEventListener('change', function (ev) {
-        if(!ev.target.matches('input[type=checkbox]')) return;
-        store.get(ev.target.name).completed = ev.target.checked;
+    todoList.delegate('change', 'input[type=checkbox]', function (ev) {
+        var _id = __(ev.target).parent('li').dataset.id;
+        store.get(_id).completed = ev.target.checked;
     });
     // catch Click on "done" button
-    main.addEventListener('click', function (ev) {
-        if(!ev.target.matches('button.destroy')) return;
-        var _id = ev.target.parentNode.querySelector('input[type=checkbox]').name;
+    todoList.delegate('click', 'button.destroy', function (ev) {
+        var _id = __(ev.target).parent('li').dataset.id;
         store.remove(_id);
     });
     // catch Double Click on todo labels
-    main.addEventListener('dblclick', function (ev) {
-        if(!ev.target.matches('label')) return;
-        ev.target.parentNode.parentNode.classList.add('editing');
-        ev.target.parentNode.parentNode.querySelector('input.edit').focus();
+    todoList.delegate('dblclick', 'label', function (ev) {
+        store.query({'@type': 'todo'}).forEach(function (rec) {
+            rec.editing = 'false';
+        });
+        var _id = __(ev.target).parent('li').dataset.id;
+        store.get(_id).editing = 'true';
     });
+
+    function update_todo(ev) {
+        var _id = __(ev.target).parent('li').dataset.id;
+        var rec = store.get(_id);
+        rec.message = ev.target.value;
+        rec.editing = 'false';
+    }
     // catch Enter in edit inputs
-    main.addEventListener('keyup', function (ev) {
+    todoList.delegate('keyup', '.edit', function (ev) {
         if(ev.code !== 'Enter') return;
-        var val = ev.target.value;
-        var _id = ev.target.parentNode.querySelector('input[type=checkbox]').name;
-        store.get(_id).message = val;
-        ev.target.parentNode.classList.remove('editing');
+        update_todo(ev);
     });
+    // also update on blur
+    todoList.delegate('focusout', '.edit', update_todo);
+
     // catch Enter in new todo input
-    input.addEventListener('keyup', function (ev) {
+    input.delegate('keyup', '.new-todo', function (ev) {
         if(ev.code !== 'Enter') return;
-        var _id = new Date().valueOf().toString();
-        store.add(_id, {"@type": "todo", message: input.value, completed: false});
+        var value = input.value.trim();
+        if(value) {
+            var _id = new Date().valueOf().toString();
+            store.add(_id, {"@type": "todo", message: input.value, completed: false});
+        }
         input.value = '';
     });
 

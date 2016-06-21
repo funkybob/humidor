@@ -27,7 +27,6 @@ QUnit.test('Iterate children', function(assert) {
     assert.deepEqual(seq, ['0','1','2','3','4','5','6','7','8','9'], 'Correct values');
 });
 
-
 QUnit.test('Query', function(assert) {
     var store = new DOMStore();
 
@@ -36,4 +35,7 @@ QUnit.test('Query', function(assert) {
     }
     var result = store.query('[type=odd]');
     assert.equal(result.length, 50, 'Odd count');
+
+    var result = store.query({'@type': 'even'});
+    assert.equal(result.length, 50, 'Query builder');
 });

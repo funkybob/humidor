@@ -173,3 +173,24 @@ DOMStore.prototype.query = function (selector) {
         return new Proxy(el, RecordProxy);
     });
 };
+
+DOMStore.prototype.load = function(data) {
+};
+
+DOMStore.prototype.dump = function() {
+
+    function dumpNodes(el) {
+        return Array.prototype.map.call(el.childNodes, function (c) {
+            var data = {};
+            for(var i=0; attr = c.attributes[i]; i++) {
+                data[attr.name] = attr.value;
+            }
+            if(c.childNodes.length) {
+                data['@children'] = dumpNodes(c);
+            }
+            return data;
+        });
+    }
+
+    return dumpNodes(this.doc);
+};

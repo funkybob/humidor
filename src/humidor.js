@@ -127,11 +127,8 @@ DOMStore.prototype.add = function(_id, data, root) {
         rec.setAttribute('id', _id);
     }
     Object.keys(data).forEach(function (k) {
-        if(k.charAt(0) === '@') {
-            rec.setAttribute(k.slice(1), data[k]);
-        } else {
-            rec.dataset[k] = data[k];
-        }
+        if(k.charAt(0) === '@') rec.setAttribute(k.slice(1), data[k]);
+        else rec.dataset[k] = data[k];
     });
     root.appendChild(rec);
     return new Proxy(rec, RecordProxy);
@@ -174,37 +171,32 @@ DOMStore.prototype.query = function (selector) {
     });
 };
 
+/**
+ * Load store records from an Array.
+ */
 DOMStore.prototype.load = function(data) {
-};
 
-DOMStore.prototype.dump = function() {
-
-    function dumpNodes(el) {
-        return Array.prototype.map.call(el.childNodes, function (c) {
-            var data = {};
-            for(var i=0; attr = c.attributes[i]; i++) {
-                data[attr.name] = attr.value;
-            }
-            if(c.childNodes.length) {
-                data['@children'] = dumpNodes(c);
-            }
-            return data;
-        });
+    function addRecord(node) {
+        var _id = node['@id'];
+        var children = node['@children'] || [];
+        delete node['@children'];
+        var node = this.add(_id, node);
+        children.forEach(addRecord, this);
     }
 
-    return dumpNodes(this.doc);
+    data.forEach(addRecord, this);
 };
 
-DOMStore.prototype.load = function(data) {
-};
-
+/**
+ * Dump store records to an Array.
+ */
 DOMStore.prototype.dump = function() {
 
     function dumpNodes(el) {
         return Array.prototype.map.call(el.childNodes, function (c) {
             var data = {};
             for(var i=0; attr = c.attributes[i]; i++) {
-                data[attr.name] = attr.value;
+                data[attr.name.slice(0, 5) == 'data-' ? attr.name.slice(5) : '@' + attr.name] = attr.value;
             }
             if(c.childNodes.length) {
                 data['@children'] = dumpNodes(c);

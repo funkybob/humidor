@@ -13,7 +13,8 @@ String.prototype.format = function (data) {
 };
 
 __.onstart(function () {
-    var store = new DOMStore(),
+    var store = new DOMStore();
+    var filter,
         tmpl = __.get('template#todo-row').innerHTML,
         input = __.get('input.new-todo'),
         todoList = __.get('ul.todo-list'),
@@ -23,6 +24,7 @@ __.onstart(function () {
 
     var FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'};
     function render () {
+        if(filter === undefined) return;
         var total = store.query({'@type': 'todo'}).length;
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
         todoList.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
@@ -96,8 +98,17 @@ __.onstart(function () {
     // watch for state changes
     store.subscribe(null, render);
 
+    // Save state on unload
+    window.addEventListener('unload', function () {
+        window.localStorage.setItem('todo', JSON.stringify(store.dump()));
+    })
     // Record to watch current filter state.  -- also triggers a render
-    var filter = store.add('filter', {'@type': 'filter', value: window.location.hash.slice(2)});
-
+    if(window.localStorage.key('todo') !== undefined) {
+        store.load(JSON.parse(window.localStorage.getItem('todo')));
+    }
+    filter = store.get('filter');
+    if(filter === undefined) {
+        filter = store.add('filter', {'@type': 'filter', value: window.location.hash.slice(2)});
+    }
     input.focus();
 });

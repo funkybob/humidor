@@ -25,10 +25,17 @@ Your code can register to be notified of any records matching a specific selecto
 # DOMStore methods
 
 subscribe(selector, handler)
+
 unsubscribe(selector, handler)
+
 add(id, data, [root]) -> record
+
 get(id) -> record
+
 remove(id|record)
+
 query(selector|object) -> Array(record)
+
 load(Array(object))
+
 dump() -> Array(object)

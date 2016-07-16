@@ -20,7 +20,8 @@ __.onstart(function () {
         todoList = __.get('ul.todo-list'),
         main = __.get('.main'),
         footer = __.get('.footer'),
-        rowcount = __.get('.todo-count strong');
+        rowcount = __.get('.todo-count strong'),
+        rowcountPlural = __.get('.todo-count span');
 
     var FILTER = {'': '', 'active': '[data-completed=false]', 'completed': '[data-completed=true]'};
     function render () {
@@ -28,6 +29,7 @@ __.onstart(function () {
         var rows = store.query('[type=todo]' + FILTER[filter.value]);
         todoList.innerHTML = rows.map(function (rec) { return tmpl.format(rec); }).join('');
         rowcount.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length;
+        rowcountPlural.innerHTML = store.query({'@type': 'todo', 'completed': 'false'}).length === 1 ? '' : 's';
         footer.classList[(total === 0) ? 'add' : 'remove']('hidden');
         main.classList[(total === 0) ? 'add' : 'remove']('hidden');
     }

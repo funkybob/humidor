@@ -65,7 +65,6 @@ var ElementListProxy = {
                 });
             };
         default:
-        console.log(key, value);
             tgt[key] = value;
         }
     }
